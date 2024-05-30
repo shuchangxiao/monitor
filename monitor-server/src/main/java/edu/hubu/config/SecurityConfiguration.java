@@ -36,6 +36,7 @@ public class SecurityConfiguration {
         return http
                 .authorizeHttpRequests(auth ->auth
                         .requestMatchers("/api/auth/**","/error").permitAll()
+                        .requestMatchers("/monitor/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
                         .anyRequest().authenticated()
                 )

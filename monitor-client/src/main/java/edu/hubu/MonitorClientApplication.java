@@ -1,4 +1,4 @@
-package edu.hubu.monitorclient;
+package edu.hubu;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

@@ -1,6 +1,9 @@
 package edu.hubu.filter;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import edu.hubu.entity.RestBean;
+import edu.hubu.entity.dto.Client;
+import edu.hubu.service.ClientService;
 import edu.hubu.utils.Const;
 import edu.hubu.utils.JwtUtils;
 import jakarta.annotation.Resource;
@@ -22,16 +25,30 @@ import java.io.IOException;
 public class JwtAuthorizeFilter extends OncePerRequestFilter {
     @Resource
     JwtUtils jwtUtils;
+    @Resource
+    ClientService clientService;
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
-        DecodedJWT jwt = jwtUtils.resolveJwt(authorization);
-        if(jwt != null){
-            UserDetails userDetails = jwtUtils.toUser(jwt);
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            request.setAttribute(Const.ATTR_USER_ID,jwtUtils.toInt(jwt));
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/monitor")) {
+            if(!uri.endsWith("/register")){
+                Client clientByToken = clientService.findClientByToken(authorization);
+                if(clientByToken == null){
+                    response.setStatus(403);
+                    response.getWriter().write(RestBean.failure(403,"未注册").asJsonString());
+                    return;
+                }
+            }
+        }else {
+            DecodedJWT jwt = jwtUtils.resolveJwt(authorization);
+            if(jwt != null){
+                UserDetails userDetails = jwtUtils.toUser(jwt);
+                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                request.setAttribute(Const.ATTR_USER_ID,jwtUtils.toInt(jwt));
+            }
         }
         filterChain.doFilter(request,response);
     }

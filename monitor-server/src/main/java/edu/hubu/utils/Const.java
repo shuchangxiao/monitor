@@ -5,6 +5,7 @@ public class Const {
     public static final String JWT_BLACK_LIST = "jwt:blacklist:";
     // 用户角色，jwt解码后存于response
     public static final String ATTR_USER_ID = "user:id:";
+    public static final String ATTR_Client = "client:";
     // 邮箱验证码
     public static final String VERIFY_EMAIL_LIMIT = "verify:email:limit:";
     public static final String VERIFY_EMAIL_DATA = "verify:email:data:";

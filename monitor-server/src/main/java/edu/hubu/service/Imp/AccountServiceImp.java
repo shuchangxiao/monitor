@@ -1,15 +1,10 @@
 package edu.hubu.service.Imp;
 
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.hubu.aop.Log;
-import edu.hubu.entity.dto.AccountDetail;
 import edu.hubu.entity.dto.AccountDto;
-import edu.hubu.entity.dto.AccountPrivacy;
 import edu.hubu.entity.vo.request.*;
-import edu.hubu.mapper.AccountDetailMapper;
 import edu.hubu.mapper.AccountMapper;
-import edu.hubu.mapper.AccountPrivacyMapper;
 import edu.hubu.service.AccountService;
 import edu.hubu.utils.Const;
 import edu.hubu.utils.FlowUtils;
@@ -24,7 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -39,10 +33,7 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
     StringRedisTemplate stringRedisTemplate;
     @Resource
     FlowUtils flowUtils;
-    @Resource
-    AccountDetailMapper accountDetailMapper;
-    @Resource
-    AccountPrivacyMapper accountPrivacyMapper;
+
     @Resource
     BCryptPasswordEncoder encoder;
 
@@ -67,51 +58,6 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
         return null;
     }
 
-    @Override
-    public String registerEmailAccount(EmailRegisterVO vo) {
-        String email = vo.getEmail();
-        String code =getEmailVerifyCode(email);
-        if (code == null) return "请先获取验证码";
-        if(!code.equals(vo.getCode())) return "验证码输入错误，请重新输入";
-        if(this.existsAccountByEmail(email)) return "此电子邮箱已经被注册";
-        if(this.existsAccountByUsername(vo.getUsername())) return "此用户名已经被注册";
-        String password = encoder.encode(vo.getPassword());
-        AccountDto accountDto = new AccountDto(null,vo.getUsername(),password, vo.getEmail(), "user",new Date(),null);
-        if(this.save(accountDto)) {
-            stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA+email);
-            accountPrivacyMapper.insert(new AccountPrivacy(accountDto.getId()));
-            AccountDetail accountDetail = new AccountDetail();
-            accountDetail.setId(accountDto.getId());
-            accountDetailMapper.insert(accountDetail);
-            return null;
-        }
-        else return "内部出现错误，请联系管理员";
-
-    }
-
-    private boolean existsAccountByEmail(String email){
-        return this.baseMapper.exists(Wrappers.<AccountDto>query().eq("email",email));
-    }
-    private boolean existsAccountByUsername(String username){
-        return this.baseMapper.exists(Wrappers.<AccountDto>query().eq("username",username));
-    }
-    private String getEmailVerifyCode(String email){
-        return stringRedisTemplate.opsForValue().get(Const.VERIFY_EMAIL_DATA + email);
-    }
-    private void  deleteEmailVerify(String email){
-        stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA + email);
-    }
-
-    @Override
-    public String changePassword(int id, ChangePasswordVO vo) {
-        String password = this.query().eq("id",id).one().getPassword();
-        if (!encoder.matches(vo.getPassword(),password)){
-            return "原密码错误，请重新输入";
-        }
-        boolean success = this.update().eq("id",id).set("password",encoder.encode(vo.getNew_password())).update();
-        if (!success) return "出现错误，请联系管理员";
-        return null;
-    }
 
     @Override
     public String registerEmailVerifyCode(String type, String email, String ip) {
@@ -140,30 +86,13 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
         AccountDto accountDto = this.findAccountByNameOrEmail(username);
         if(accountDto ==null)
             throw new UsernameNotFoundException("用户名或密码错误");
-//        return User
-//                .withUsername(username)
-//                .password(accountDto.getPassword())
-//                .roles(accountDto.getRole())
-//                .build();
+
         // 新写法
         MyUserDetail myUserDetail = new MyUserDetail();
         myUserDetail.setAccountDto(accountDto);
         return myUserDetail;
     }
 
-    @Override
-    public String modifyEmail(int id, ModifyEmailVO vo) {
-        String code =getEmailVerifyCode(vo.getEmail());
-        if (code == null) return "请先获取验证码";
-        if(!code.equals(vo.getCode())) return "验证码输入错误，请重新输入";
-        this.deleteEmailVerify(vo.getEmail());
-        AccountDto accountDto = this.findAccountByNameOrEmail(vo.getEmail());
-        if(accountDto !=null && accountDto.getId() != id){
-            return "该电子邮件已经被注册,无法完成此操作";
-        }
-        this.update().eq("id",id).set("email",vo.getEmail()).update();
-        return null;
-    }
 
     @Override
     public AccountDto findAccountByNameOrEmail(String text){
@@ -174,10 +103,6 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
 
     }
 
-    @Override
-    public AccountDto findAccountById(int id) {
-        return this.query().eq("id",id).one();
-    }
 
     private boolean verifyLimit(String ip){
         String key = Const.VERIFY_EMAIL_LIMIT + ip;
