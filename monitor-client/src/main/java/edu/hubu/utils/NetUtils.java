@@ -1,8 +1,10 @@
 package edu.hubu.utils;
 
 import com.alibaba.fastjson2.JSONObject;
+import edu.hubu.entity.BaseDetail;
 import edu.hubu.entity.ConnectConfig;
 import edu.hubu.entity.Response;
+import edu.hubu.entity.RuntimeDetail;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
@@ -46,4 +48,35 @@ public class NetUtils {
             return Response.errorResponse(e);
         }
     }
+    public void updateBaseDetails(BaseDetail detail){
+        Response response = this.doPost("/detail", detail);
+        if(response.success()){
+            log.info("系统基本信息已经更新完成");
+        }else {
+            log.error("基本信息更新失败：{}",response.message());
+        }
+    }
+    public void updateRuntimeDetails(RuntimeDetail detail){
+        Response response = this.doPost("/runtime", detail);
+        if(!response.success()){
+            log.error("基本信息更新失败：{}",response.message());
+        }
+    }
+    private Response doPost(String url ,Object data){
+        String jsonString = JSONObject.from(data).toJSONString();
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonString))
+                    .uri(new URI(connectConfig.getAddress()+"/monitor"+url))
+                    .header("Authorization",connectConfig.getToken())
+                    .header("Content-Type","application/json")
+                    .build();
+            HttpResponse<String> send = client.send(request,HttpResponse.BodyHandlers.ofString());
+            return JSONObject.parseObject(send.body()).to(Response.class);
+        } catch (Exception e) {
+            log.error("发送失败请求失败：{}",e.getMessage());
+            return Response.errorResponse(e);
+        }
+    }
+
 }

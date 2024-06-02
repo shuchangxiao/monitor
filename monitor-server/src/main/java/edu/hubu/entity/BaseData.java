@@ -2,7 +2,6 @@ package edu.hubu.entity;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 
 public interface BaseData {
     default <V> V asViewObject(Class<V> clazz){
@@ -24,9 +23,7 @@ public interface BaseData {
             field.setAccessible(true);
             source.setAccessible(true);
             field.set(object,source.get(this));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {}
     }
 
 }

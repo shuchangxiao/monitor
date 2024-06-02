@@ -6,13 +6,13 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 public class BaseDetail {
-    String orArch;
-    String name;
+    String osArch;
+    String osName;
     String osVersion;
     int osBit;
-    String CPUName;
-    int CPUCore;
+    String cpuName;
+    int cpuCore;
     double memory;
     double disk;
-    String IP;
+    String ip;
 }

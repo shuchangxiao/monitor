@@ -1,4 +1,8 @@
 spring:
+  influx:
+    url: http://192.168.171.199:8086
+    user: shucongcong
+    password: 12345678
   security:
     jwt:
       key: abcdefg

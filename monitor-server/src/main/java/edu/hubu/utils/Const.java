@@ -21,5 +21,6 @@ public class Const {
     public static final String FORUM_TOPIC_CREATE_COUNTER = "forum:create:topic:";
     public static final String FORUM_TOPIC_CREATE_COMMENT = "forum:create:comment:";
     public static final String FORUM_TOPIC_PREVIEW_CACHE = "forum:preview:";
+    public static final String ROLE_DEFAULT = "admin";
 
 }

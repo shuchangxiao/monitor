@@ -3,9 +3,11 @@ package edu.hubu.service.Imp;
 import edu.hubu.entity.dto.AccountDto;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -75,4 +77,18 @@ public class MyUserDetail implements UserDetails {
         }
     }
 
+    public void setAuthorities(String... roles) {
+        List<GrantedAuthority> authorities = new ArrayList(roles.length);
+        String[] var3 = roles;
+        int var4 = roles.length;
+
+        for(int var5 = 0; var5 < var4; ++var5) {
+            String role = var3[var5];
+            Assert.isTrue(!role.startsWith("ROLE_"), () -> {
+                return role + " cannot start with ROLE_ (it is automatically added)";
+            });
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        }
+        this.authorities = authorities;
+    }
 }

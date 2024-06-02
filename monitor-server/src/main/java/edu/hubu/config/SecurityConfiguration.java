@@ -4,9 +4,9 @@ import edu.hubu.entity.RestBean;
 import edu.hubu.entity.vo.response.AuthorizeVO;
 import edu.hubu.filter.JwtAuthorizeFilter;
 import edu.hubu.service.Imp.MyUserDetail;
+import edu.hubu.utils.Const;
 import edu.hubu.utils.JwtUtils;
 import jakarta.annotation.Resource;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +38,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/**","/error").permitAll()
                         .requestMatchers("/monitor/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().hasAnyRole(Const.ROLE_DEFAULT)
                 )
                 .formLogin(conf ->conf
                         .loginProcessingUrl("/api/auth/login")

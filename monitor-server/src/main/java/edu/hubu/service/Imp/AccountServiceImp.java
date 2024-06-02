@@ -3,7 +3,8 @@ package edu.hubu.service.Imp;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.hubu.aop.Log;
 import edu.hubu.entity.dto.AccountDto;
-import edu.hubu.entity.vo.request.*;
+import edu.hubu.entity.vo.request.ConfirmResetVO;
+import edu.hubu.entity.vo.request.EmailResetVO;
 import edu.hubu.mapper.AccountMapper;
 import edu.hubu.service.AccountService;
 import edu.hubu.utils.Const;
@@ -90,6 +91,7 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
         // 新写法
         MyUserDetail myUserDetail = new MyUserDetail();
         myUserDetail.setAccountDto(accountDto);
+        myUserDetail.setAuthorities(accountDto.getRole());
         return myUserDetail;
     }
 

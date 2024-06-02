@@ -38,6 +38,8 @@ public class JwtAuthorizeFilter extends OncePerRequestFilter {
                     response.setStatus(403);
                     response.getWriter().write(RestBean.failure(403,"未注册").asJsonString());
                     return;
+                }else {
+                    request.setAttribute(Const.ATTR_Client,clientByToken.getId());
                 }
             }
         }else {

@@ -1,46 +1,94 @@
 package edu.hubu.service.Imp;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.hubu.entity.dto.Client;
+import edu.hubu.entity.dto.ClientDetail;
+import edu.hubu.entity.vo.request.ClientDetailVO;
+import edu.hubu.entity.vo.request.RenameClientVO;
+import edu.hubu.entity.vo.request.RuntimeDetailVO;
+import edu.hubu.entity.vo.response.ClientPreviewVO;
+import edu.hubu.mapper.ClientDetailMapper;
 import edu.hubu.mapper.ClientMapper;
 import edu.hubu.service.ClientService;
+import edu.hubu.utils.InfluxdbUtils;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.Date;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implements ClientService {
-
+    @Resource
+    ClientDetailMapper clientDetailMapper;
+    @Resource
+    InfluxdbUtils influxdbUtils;
     private String registerToken;
-    private final Map<Integer,Client> clientCache = new ConcurrentHashMap<>();
-    private final Map<String,Client> clientTokenCache = new ConcurrentHashMap<>();
-
+    private final Map<Integer, Client> clientCache = new ConcurrentHashMap<>();
+    private final Map<String, Client> clientTokenCache = new ConcurrentHashMap<>();
+    private final Map<Integer,RuntimeDetailVO> runtimeMap = new ConcurrentHashMap<>();
     @Override
     public boolean verifyAndRegister(String token){
         if (this.registerToken.equals(token)) {
             int id = this.randomClientId();
-            Client client = new Client(id,"未命名主机",token,new Date());
-            if (this.save(client)) {
+            Client clientDetail = new Client(id,"未命名主机",token,new Date(),"cn","未命名节点");
+            if (this.save(clientDetail)) {
                 registerToken = this.generateNewToken();
-                this.addClientCache(client);
+                this.addClientCache(clientDetail);
                 return true;
             }
         }
         return false;
     }
-    private void addClientCache(Client client){
-        clientCache.put(client.getId(),client);
-        clientTokenCache.put(client.getToken(),client);
-    }
+
     @Override
     public Client findClientById(int id){
         return clientCache.get(id);
     }
+
+    @Override
+    public void renameClient(RenameClientVO vo) {
+        this.update(Wrappers.<Client>update().eq("id",vo.getId()).set("name",vo.getName()));
+        this.initialCache();
+    }
+
+    @Override
+    public List<ClientPreviewVO> getListClientPreview() {
+        return clientCache.values().stream().map(client -> {
+            ClientPreviewVO vo = client.asViewObject(ClientPreviewVO.class);
+            BeanUtils.copyProperties(clientDetailMapper.selectById(vo.getId()), vo);
+            RuntimeDetailVO runtime = runtimeMap.get(client.getId());
+            if (runtime != null && System.currentTimeMillis() - runtime.getTimestamp() < 60 * 1000) {
+                BeanUtils.copyProperties(runtime, vo);
+                vo.setOnline(true);
+            }
+            return vo;
+        }).toList();
+
+    }
+
+    @Override
+    public void runtimeUpdateDetail(int id, RuntimeDetailVO vo) {
+        runtimeMap.put(id, vo);
+        influxdbUtils.writeRuntimeData(id,vo);
+    }
+
+    @Override
+    public void updateClientDetails(int id, ClientDetailVO vo) {
+        ClientDetail detail = new ClientDetail();
+        BeanUtils.copyProperties(vo,detail);
+        detail.setId(id);
+        if(Objects.nonNull(clientDetailMapper.selectById(id))){
+            clientDetailMapper.updateById(detail);
+        }else {
+            clientDetailMapper.insert(detail);
+        }
+    }
+
     @Override
     public Client findClientByToken(String token){
         return clientTokenCache.get(token);
@@ -55,9 +103,18 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
 
     @PostConstruct
     public void initialize(){
-        this.list().forEach(this::addClientCache);
+        this.initialCache();
         this.registerToken = this.generateNewToken();
         System.out.println(this.registerToken);
+    }
+    private void initialCache(){
+        clientTokenCache.clear();
+        clientCache.clear();
+        this.list().forEach(this::addClientCache);
+    }
+    private void addClientCache(Client client){
+        clientCache.put(client.getId(), client);
+        clientTokenCache.put(client.getToken(), client);
     }
     private String generateNewToken(){
         String Characters = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

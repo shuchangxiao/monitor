@@ -3,7 +3,6 @@ package edu.hubu.utils;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
-
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
@@ -11,15 +10,12 @@ import edu.hubu.service.Imp.MyUserDetail;
 import jakarta.annotation.Resource;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -87,17 +83,18 @@ public class JwtUtils {
 public String creatJwt(MyUserDetail userDetails){
     // 使用HMAC256算法创建JWT签名算法
     Algorithm algorithm = Algorithm.HMAC256(KEY);
+    List<String> list = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
     Date X = expireTime();
-    return JWT.create() // 创建JWT
+    String sign = JWT.create() // 创建JWT
             .withJWTId(UUID.randomUUID().toString())
-            .withClaim("id",userDetails.getId()) // 添加用户ID作为JWT的声明
-            .withClaim("username",userDetails.getUsername()) // 添加用户名作为JWT的声明
+            .withClaim("id", userDetails.getId()) // 添加用户ID作为JWT的声明
+            .withClaim("username", userDetails.getUsername()) // 添加用户名作为JWT的声明
             // 将用户权限转换为字符串列表，并添加到JWT的声明中
-//            .withClaim("authorities",userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
+            .withClaim("authorities", userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
             .withExpiresAt(X) // 设置JWT的过期时间
             .withIssuedAt(new Date()) // 设置JWT的发行时间
-            .sign(algorithm); // 使用算法签名JWT
-
+            .sign(algorithm);// 使用算法签名JWT
+    return sign;
 }
     public Date expireTime(){
         Calendar calendar = Calendar.getInstance();
@@ -112,7 +109,7 @@ public String creatJwt(MyUserDetail userDetails){
     public UserDetails toUser(DecodedJWT jwt){
         Map<String, Claim> claimMap = jwt.getClaims();
         return User.withUsername(claimMap.get("username").asString())
-//                .authorities(claimMap.get("authorities").asString())
+                .authorities(claimMap.get("authorities").asArray(String.class))
                 .password("******")
                 .build();
     }
