@@ -7,6 +7,7 @@ import edu.hubu.entity.dto.ClientDetail;
 import edu.hubu.entity.vo.request.ClientDetailVO;
 import edu.hubu.entity.vo.request.RenameClientVO;
 import edu.hubu.entity.vo.request.RuntimeDetailVO;
+import edu.hubu.entity.vo.response.ClientDetailsVO;
 import edu.hubu.entity.vo.response.ClientPreviewVO;
 import edu.hubu.mapper.ClientDetailMapper;
 import edu.hubu.mapper.ClientMapper;
@@ -62,7 +63,7 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
             ClientPreviewVO vo = client.asViewObject(ClientPreviewVO.class);
             BeanUtils.copyProperties(clientDetailMapper.selectById(vo.getId()), vo);
             RuntimeDetailVO runtime = runtimeMap.get(client.getId());
-            if (runtime != null && System.currentTimeMillis() - runtime.getTimestamp() < 60 * 1000) {
+            if (this.isOnline(runtime)) {
                 BeanUtils.copyProperties(runtime, vo);
                 vo.setOnline(true);
             }
@@ -112,12 +113,23 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
         clientCache.clear();
         this.list().forEach(this::addClientCache);
     }
+
+    @Override
+    public ClientDetailsVO clientDetails(int id) {
+        ClientDetailsVO vo = this.clientCache.get(id).asViewObject(ClientDetailsVO.class);
+        BeanUtils.copyProperties(clientDetailMapper.selectById(id),vo);
+        vo.setOnline(this.isOnline(runtimeMap.get(id)));
+        return vo;
+    }
+    private boolean isOnline(RuntimeDetailVO runtime){
+        return runtime != null && System.currentTimeMillis() - runtime.getTimestamp() < 60 * 1000;
+    }
     private void addClientCache(Client client){
         clientCache.put(client.getId(), client);
         clientTokenCache.put(client.getToken(), client);
     }
     private String generateNewToken(){
-        String Characters = "abcdefghijklmnopqrstuvwxzyABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String Characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         SecureRandom random = new SecureRandom();
         StringBuilder sb = new StringBuilder();
         for (int i=0;i < 24;i++){

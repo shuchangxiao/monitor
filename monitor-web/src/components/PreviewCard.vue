@@ -1,5 +1,5 @@
 <script setup>
-import {fitByUnit} from "@/tools/index.js"
+import {fitByUnit,percentageToStatus} from "@/tools/index.js"
 import {useClipboard} from "@vueuse/core";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {post} from "@/net/index.js";
@@ -67,11 +67,11 @@ function rename(){
     </div>
     <div class="progress">
       <span>CPU: {{ (props.data.cpuUsage*100).toFixed(2) }}%</span>
-      <el-progress :percentage="(props.data.cpuUsage*100).toFixed(2)" :stroke-width="5" :show-text="false"/>
+      <el-progress :status="percentageToStatus(props.data.cpuUsage*100)" :percentage="(props.data.cpuUsage*100).toFixed(2)" :stroke-width="5" :show-text="false"/>
     </div>
     <div class="progress">
       <span>内存: {{ `${props.data.memoryUsage.toFixed(2)}%` }}</span>
-      <el-progress :percentage="(props.data.memoryUsage/props.data.memory*100).toFixed(2)" :stroke-width="5" :show-text="false"/>
+      <el-progress :status="percentageToStatus((props.data.memoryUsage/props.data.memory*100))" :percentage="(props.data.memoryUsage/props.data.memory*100).toFixed(2)" :stroke-width="5" :show-text="false"/>
     </div>
     <div class="network-flow">
       <span>网络情况</span>
@@ -87,12 +87,7 @@ function rename(){
 </template>
 
 <style scoped>
-:deep(.el-progress-bar__inner){
-  background-color: #18cb18;
-}
-:deep(.el-progress-bar__outer){
-  background-color: #18cb1822;
-}
+
 .instance-card{
   width: 320px;
   padding: 15px;
@@ -100,6 +95,7 @@ function rename(){
   border-radius: 5px;
   box-sizing: border-box;
   color:#6b6b6b;
+  transition: 0.3s;
   .name{
     font-size: 15px;
     font-weight: bold;
@@ -130,6 +126,10 @@ function rename(){
   }
   .cpu{
     font-size: 13px;
+  }
+  &:hover{
+    cursor: pointer;
+    scale: 1.1;
   }
 }
 .dark .instance-card{

@@ -21,4 +21,13 @@ export function fitByUnit(value, unit) {
         return null; // 或者其他适当的错误处理
     }
 }
-export default {fitByUnit}
+export function percentageToStatus(percentage) {
+    if(percentage < 50) {
+        return 'success';
+    }else if(percentage < 80) {
+        return 'warning';
+    }else {
+        return 'exception';
+    }
+}
+export default {fitByUnit,percentageToStatus}

@@ -2,6 +2,7 @@ package edu.hubu.controller;
 
 import edu.hubu.entity.RestBean;
 import edu.hubu.entity.vo.request.RenameClientVO;
+import edu.hubu.entity.vo.response.ClientDetailsVO;
 import edu.hubu.entity.vo.response.ClientPreviewVO;
 import edu.hubu.service.ClientService;
 import jakarta.annotation.Resource;
@@ -23,5 +24,9 @@ public class MonitorController {
     public RestBean<Void> rename(@RequestBody @Valid RenameClientVO vo){
         clientService.renameClient(vo);
         return RestBean.success();
+    }
+    @GetMapping("/details")
+    public RestBean<ClientDetailsVO> getDetails(@RequestParam int id){
+        return RestBean.success(clientService.clientDetails(id));
     }
 }
