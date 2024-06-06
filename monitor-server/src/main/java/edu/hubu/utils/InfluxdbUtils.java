@@ -15,8 +15,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public class InfluxdbUtils {
@@ -26,12 +29,13 @@ public class InfluxdbUtils {
     String user;
     @Value("${spring.influx.password}")
     String password;
+    String token = "ONqV6gLEXeZw5vG4ZkPXbnO8H9IsSh6BiGRk4_lOBWeOv8pETSfIv2J-sXuIm325tvoUGfereoJmltCn3SCPbQ==";
     String BUCKET = "monitor";
     String ORG = "test";
     private InfluxDBClient client;
     @PostConstruct
     public void init(){
-        client = InfluxDBClientFactory.create(url,user,password.toCharArray());
+        client = InfluxDBClientFactory.create(url,token.toCharArray());
     }
     public void writeRuntimeData(int clientId, RuntimeDetailVO vo){
         RuntimeData data = new RuntimeData();
@@ -45,17 +49,13 @@ public class InfluxdbUtils {
     public RuntimeHistoryVO readRuntimeData(int id){
         String query = """
                 from(bucket: "%s")
-                |> range(start: %s)
+                |> range(start: %s,stop: %s)
                 |> filter(fn: (r) => r["_measurement"] == "runtime")
                 |> filter(fn: (r) => r["clientId"] == "%s")
                 """;
-        String query1 = """
-                from(bucket: "%s")
-                |> range(start: %s)
-                |> filter(fn: (r) => r["_measurement"] == "runtime")
-                |> filter(fn: (r) => r["clientId"] == "%s")
-                """;
-        String format = String.format(query, BUCKET,"-1h",id);
+        Instant now = Instant.now();
+        Instant beforeOneHours = now.minus(Duration.ofHours(1));
+        String format = String.format(query, BUCKET,beforeOneHours,now,id);
         List<FluxTable> tables = client.getQueryApi().query(format, ORG);
         int size = tables.size();
         RuntimeHistoryVO runtimeHistoryVO = new RuntimeHistoryVO();
@@ -63,7 +63,7 @@ public class InfluxdbUtils {
         List<FluxRecord> records = tables.get(0).getRecords();
         for(int i=0;i<records.size();i++){
             JSONObject object = new JSONObject();
-            object.put("timestamp",records.get(i).getTime());
+            object.put("timestamp", Objects.requireNonNull(records.get(i).getTime()).plus(Duration.ofHours(8)));
             for(int j=0;j<size;j++){
                 FluxRecord record = tables.get(j).getRecords().get(i);
                 object.put(record.getField(),record.getValue());

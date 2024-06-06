@@ -45,4 +45,13 @@ public class MonitorController {
     public RestBean<RuntimeDetailVO> runtimeDetailsNow(@RequestParam int id){
         return RestBean.success(clientService.clientRuntimeDetailsNow(id));
     }
+    @GetMapping("/register")
+    public RestBean<String> registerToken(){
+        return RestBean.success(clientService.registerToke());
+    }
+    @GetMapping("/delete")
+    public RestBean<Void> deleteClient(@RequestParam int clientId){
+        clientService.deleteClient(clientId);
+        return RestBean.success();
+    }
 }

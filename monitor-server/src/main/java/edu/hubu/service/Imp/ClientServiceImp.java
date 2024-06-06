@@ -70,6 +70,14 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
     }
 
     @Override
+    public void deleteClient(int clientId) {
+        this.removeById(clientId);
+        clientDetailMapper.deleteById(clientId);
+        this.initialCache();
+        runtimeMap.remove(clientId);
+    }
+
+    @Override
     public RuntimeDetailVO clientRuntimeDetailsNow(int clientId) {
         return runtimeMap.get(clientId);
     }
@@ -129,7 +137,6 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
     public void initialize(){
         this.initialCache();
         this.registerToken = this.generateNewToken();
-        System.out.println(this.registerToken);
     }
     private void initialCache(){
         clientTokenCache.clear();
