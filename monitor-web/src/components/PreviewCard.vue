@@ -1,32 +1,10 @@
 <script setup>
-import {fitByUnit,percentageToStatus} from "@/tools/index.js"
-import {useClipboard} from "@vueuse/core";
-import {ElMessage, ElMessageBox} from "element-plus";
+import {copyIp, fitByUnit, osNameToIcon, percentageToStatus, rename} from "@/tools/index.js"
 import {post} from "@/net/index.js";
 const props = defineProps({
   data:Array,
   update:Function
 })
-const {copy} = useClipboard()
-const copyIp = ()=>copy(props.data.ip).then(()=>ElMessage.success("成功赋值ip到剪切板"))
-function rename(){
-  ElMessageBox.prompt('请输入新服务器主机名称','修改名称',{
-    confirmButtonText:'确认',
-    cancelButtonText:'取消',
-    inputValue:props.data.name,
-    inputPattern:
-    /^[a-zA-Z0-9_\u4e00-\u9fa5]{1,10}$/,
-  }).then(({value})=>{
-    post('/api/monitor/rename',{
-      id:props.data.id,
-      name:value
-    },()=>{
-      ElMessage.success("主机名字已更新")
-      props.update()
-    })
-  })
-
-}
 </script>
 
 <template>
@@ -36,10 +14,13 @@ function rename(){
         <div class="name">
           <span :class="`flag-icon flag-icon-${props.data.location}`"></span>&nbsp;
           <span>{{ props.data.name }}</span>
-          <i @click="rename" style="margin-left: 5px" class="fa-solid fa-pen-to-square"></i>
+          <i @click.stop="rename(props.data.id,props.data.name,props.update)" style="margin-left: 5px" class="fa-solid fa-pen-to-square"></i>
         </div>
         <div class="os">
-          操作系统:&nbsp;{{ props.data.osName }}{{ props.data.osVersion }}
+          <span>操作系统:&nbsp;&nbsp;</span>
+          <i :style="{color:osNameToIcon(props.data.osName).color}"
+             :class="`fa-brands ${osNameToIcon(props.data.osName).icon}`"></i>
+          {{ props.data.osName }}{{ props.data.osVersion }}
         </div>
       </div>
       <div class="status" v-if="props.data.online">
@@ -53,8 +34,8 @@ function rename(){
     </div>
     <el-divider style="margin: 10px 0"></el-divider>
     <div class="network">
-      <span style="">公网IP号:&nbsp;{{ props.data.ip }}</span>
-      <i @click.stop="copyIp" style="color: dodgerblue;margin-left: 5px" class="fa-solid fa-copy interact-item"></i>
+      <span style="">公网IP号:&nbsp;{{ props.data.ip}}</span>
+      <i @click.stop="copyIp(props.data.ip )" style="color: dodgerblue;margin-left: 5px" class="fa-solid fa-copy interact-item"></i>
     </div>
     <div class="cpu">
       <span>处理器：{{props.data.cpuName}}</span>
@@ -135,12 +116,5 @@ function rename(){
 .dark .instance-card{
   color: #d9d9d9;
 }
-.interact-item{
-  transition: 0.3s;
-  &:hover{
-    cursor:pointer;
-    scale: 1.1;
-    opacity: 0.8;
-  }
-}
+
 </style>

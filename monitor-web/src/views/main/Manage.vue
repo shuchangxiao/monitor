@@ -8,6 +8,7 @@ const list = ref([])
 const updateList = ()=>get("/api/monitor/list",data =>{
   list.value = data
 })
+
 setInterval(updateList,10000)
 updateList()
 
@@ -19,6 +20,7 @@ const displayClientDetail = (id)=>{
   detail.show = true
   detail.id = id
 }
+
 </script>
 
 <template>
@@ -34,7 +36,7 @@ const displayClientDetail = (id)=>{
       <preview-card v-for="item in list" :data="item" :update="updateList" @click="displayClientDetail(item.id)"/>
     </div>
     <el-drawer size="520" :show-close="false" v-model="detail.show" :with-header="false" v-if="list.length" @close="detail.id = -1">
-      <ClientDetail :id="detail.id"/>
+      <ClientDetail :id="detail.id" :update="updateList"/>
     </el-drawer>
   </div>
 </template>

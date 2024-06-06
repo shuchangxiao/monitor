@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import edu.hubu.entity.dto.Client;
 import edu.hubu.entity.vo.request.ClientDetailVO;
 import edu.hubu.entity.vo.request.RenameClientVO;
+import edu.hubu.entity.vo.request.RenameNodeVO;
 import edu.hubu.entity.vo.request.RuntimeDetailVO;
 import edu.hubu.entity.vo.response.ClientDetailsVO;
 import edu.hubu.entity.vo.response.ClientPreviewVO;
+import edu.hubu.entity.vo.response.RuntimeHistoryVO;
 
 import java.util.List;
 
@@ -19,5 +21,8 @@ public interface ClientService extends IService<Client> {
     void runtimeUpdateDetail(int id, RuntimeDetailVO vo);
     List<ClientPreviewVO> getListClientPreview();
     void renameClient(RenameClientVO vo);
+    void renameNode(RenameNodeVO vo);
     ClientDetailsVO clientDetails(int id);
+    RuntimeHistoryVO clientRuntimeDetailsHistory(int clientId);
+    RuntimeDetailVO clientRuntimeDetailsNow(int clientId);
 }

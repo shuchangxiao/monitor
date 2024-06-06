@@ -6,9 +6,11 @@ import edu.hubu.entity.dto.Client;
 import edu.hubu.entity.dto.ClientDetail;
 import edu.hubu.entity.vo.request.ClientDetailVO;
 import edu.hubu.entity.vo.request.RenameClientVO;
+import edu.hubu.entity.vo.request.RenameNodeVO;
 import edu.hubu.entity.vo.request.RuntimeDetailVO;
 import edu.hubu.entity.vo.response.ClientDetailsVO;
 import edu.hubu.entity.vo.response.ClientPreviewVO;
+import edu.hubu.entity.vo.response.RuntimeHistoryVO;
 import edu.hubu.mapper.ClientDetailMapper;
 import edu.hubu.mapper.ClientMapper;
 import edu.hubu.service.ClientService;
@@ -49,6 +51,27 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
     @Override
     public Client findClientById(int id){
         return clientCache.get(id);
+    }
+
+    @Override
+    public void renameNode(RenameNodeVO vo) {
+        this.update(Wrappers.<Client>update().eq("id",vo.getId())
+                .set("location",vo.getLocation())
+                .set("node",vo.getNode()));
+        this.initialCache();
+    }
+
+    @Override
+    public RuntimeHistoryVO clientRuntimeDetailsHistory(int clientId) {
+        RuntimeHistoryVO vo = influxdbUtils.readRuntimeData(clientId);
+        ClientDetail clientDetail = clientDetailMapper.selectById(clientId);
+        BeanUtils.copyProperties(clientDetail,vo);
+        return vo;
+    }
+
+    @Override
+    public RuntimeDetailVO clientRuntimeDetailsNow(int clientId) {
+        return runtimeMap.get(clientId);
     }
 
     @Override
