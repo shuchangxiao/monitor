@@ -1,7 +1,7 @@
 <script setup>
 import axios from "axios";
 
-defineProps({
+const props = defineProps({
   token:String
 })
 </script>
@@ -18,7 +18,7 @@ defineProps({
     <el-input v-model="axios.defaults.baseURL" readonly/>
     <div class="sub-title" style="margin-top: 10px">3.输入授权码</div>
     <div class="desc">客户端所需所有请求必须携带授权码才能被服务端正确识别</div>
-    <el-input :placeholder="token" readonly/>
+    <el-input v-model="props.token" readonly/>
   </div>
 </template>
 

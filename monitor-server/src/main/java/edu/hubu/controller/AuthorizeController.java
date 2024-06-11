@@ -1,12 +1,14 @@
 package edu.hubu.controller;
 
 import edu.hubu.entity.RestBean;
-import edu.hubu.entity.vo.request.ConfirmResetVO;
+import edu.hubu.entity.vo.request.ChangePasswordVO;
 import edu.hubu.entity.vo.request.EmailResetVO;
 import edu.hubu.service.AccountService;
+import edu.hubu.utils.Const;
 import edu.hubu.utils.ControllerUtils;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.validation.annotation.Validated;
@@ -28,10 +30,7 @@ public class AuthorizeController {
         return controllerUtils.messageHandle(
                 () -> accountService.registerEmailVerifyCode(type,email,request.getRemoteAddr()));
     }
-    @PostMapping("/reset-config")
-    public RestBean<Void> restConfig(@RequestBody ConfirmResetVO vo){
-        return this.messageHandle(vo,accountService::resetConfirm);
-    }
+
     @PostMapping("/reset-password")
     public RestBean<Void> restPassword(@RequestBody EmailResetVO vo){
         return this.messageHandle(vo,accountService::resetPassword);
@@ -39,5 +38,8 @@ public class AuthorizeController {
     private <T> RestBean<Void> messageHandle(T vo, Function<T,String> function){
         return controllerUtils.messageHandle(()->function.apply(vo));
     }
-
+    @PostMapping("/change-password")
+    public RestBean<Void> changePassword(@RequestBody @Valid ChangePasswordVO vo, @RequestAttribute(Const.ATTR_USER_ID) int id){
+        return controllerUtils.messageHandle(()->accountService.changePassword(id,vo));
+    }
 }

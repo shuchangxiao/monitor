@@ -10,6 +10,7 @@ import edu.hubu.entity.vo.request.RenameNodeVO;
 import edu.hubu.entity.vo.request.RuntimeDetailVO;
 import edu.hubu.entity.vo.response.ClientDetailsVO;
 import edu.hubu.entity.vo.response.ClientPreviewVO;
+import edu.hubu.entity.vo.response.ClientSimpleVO;
 import edu.hubu.entity.vo.response.RuntimeHistoryVO;
 import edu.hubu.mapper.ClientDetailMapper;
 import edu.hubu.mapper.ClientMapper;
@@ -86,6 +87,15 @@ public class ClientServiceImp extends ServiceImpl<ClientMapper, Client> implemen
     public void renameClient(RenameClientVO vo) {
         this.update(Wrappers.<Client>update().eq("id",vo.getId()).set("name",vo.getName()));
         this.initialCache();
+    }
+
+    @Override
+    public List<ClientSimpleVO> getListSimpleClientPreview() {
+        return clientCache.values().stream().map(client -> {
+            ClientSimpleVO vo = client.asViewObject(ClientSimpleVO.class);
+            BeanUtils.copyProperties(clientDetailMapper.selectById(vo.getId()), vo);
+            return vo;
+        }).toList();
     }
 
     @Override

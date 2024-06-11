@@ -19,6 +19,9 @@ public record RestBean<T>(int code, T data , String message) {
     public static <T> RestBean<T> forbidden(String mes){
         return new RestBean<>(403,null,mes);
     }
+    public static <T> RestBean<T> noPermission(){
+        return new RestBean<>(401,null,"权限不足");
+    }
     public String asJsonString(){
         return JSONObject.toJSONString(this, JSONWriter.Feature.WriteNulls);
     }

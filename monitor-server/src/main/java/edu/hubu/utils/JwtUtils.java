@@ -24,6 +24,7 @@ public class JwtUtils {
     String KEY;
     @Value("${spring.security.jwt.expire}")
     int EXPIRE;
+
     @Resource
     StringRedisTemplate stringRedisTemplate;
     public boolean invalidateJwt(String headerToken){
@@ -57,6 +58,8 @@ public class JwtUtils {
         try {
             DecodedJWT jwt = jwtVerify.verify(token);
             if(this.isInvalidJwt(jwt.getId()))
+                return null;
+            if (this.isInvalidUser(jwt.getClaims().get("id").asInt()))
                 return null;
             Date expiresAt = jwt.getExpiresAt();
             return new Date().after(expiresAt) ?null:jwt;
@@ -116,5 +119,11 @@ public String creatJwt(MyUserDetail userDetails){
     public Integer toInt(DecodedJWT jwt){
         Map<String, Claim> claimMap = jwt.getClaims();
         return claimMap.get("id").asInt();
+    }
+    public void deleteUser(int id){
+            stringRedisTemplate.opsForValue().set(Const.USER_BLACK_LIST+id,"",EXPIRE,TimeUnit.DAYS);
+    }
+    public boolean isInvalidUser(int id){
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(Const.USER_BLACK_LIST+id));
     }
 }

@@ -1,10 +1,11 @@
 package edu.hubu.service.Imp;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import edu.hubu.aop.Log;
 import edu.hubu.entity.dto.AccountDto;
-import edu.hubu.entity.vo.request.ConfirmResetVO;
-import edu.hubu.entity.vo.request.EmailResetVO;
+import edu.hubu.entity.vo.request.*;
 import edu.hubu.mapper.AccountMapper;
 import edu.hubu.service.AccountService;
 import edu.hubu.utils.Const;
@@ -20,6 +21,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +48,52 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
         if (code == null) return "请先获取验证码";
         if (!code.equals(vo.getCode())) return "验证码错误，请重新输入";
         return null;
+    }
+
+    @Override
+    public String changePassword(int id,ChangePasswordVO vo) {
+        AccountDto byId = this.getById(id);
+        if (!encoder.matches(vo.getPassword(),byId.getPassword())) {
+            return "密码错误";
+        }
+        this.update(Wrappers.<AccountDto>update()
+                .eq("id",id)
+                .set("password",encoder.encode(vo.getNewPassword())));
+        return null;
+    }
+
+    @Override
+    public void createSubAccount(CreateSubAccountVO vo) {
+        AccountDto accountByNameOrEmail = this.findAccountByNameOrEmail(vo.getEmail());
+        if( accountByNameOrEmail != null)
+            throw new IllegalArgumentException("该电子邮件已被注册");
+        accountByNameOrEmail = this.findAccountByNameOrEmail(vo.getUsername());
+        if( accountByNameOrEmail != null)
+            throw new IllegalArgumentException("该用户名已被注册");
+        AccountDto accountDto = new AccountDto(null,
+                vo.getUsername(),encoder.encode(vo.getPassword()),
+                vo.getEmail(),Const.ROLE_NORMAL,new Date(),
+                JSONArray.copyOf(vo.getClients()).toJSONString());
+        this.save(accountDto);
+    }
+
+    @Override
+    public void deleteSubAccount(int id) {
+        this.removeById(id);
+    }
+
+    @Override
+    public List<SubAccountVO> listSubAccount() {
+         return this.list(Wrappers.<AccountDto>query()
+                .eq("role", Const.ROLE_NORMAL))
+                 .stream()
+                 .map(item-> {
+                     SubAccountVO viewObject = item.asViewObject(SubAccountVO.class);
+                     viewObject.setClientList(JSONArray.parse(item.getClients()));
+                     return viewObject;
+                 })
+                 .toList();
+
     }
 
     @Override

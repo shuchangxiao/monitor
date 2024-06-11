@@ -20,4 +20,5 @@ public class AccountDto implements BaseData {
     String email;
     String role;
     Date registerTime;
+    String clients;
 }

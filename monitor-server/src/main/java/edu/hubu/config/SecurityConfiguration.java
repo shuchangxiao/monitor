@@ -38,7 +38,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/auth/**","/error").permitAll()
                         .requestMatchers("/monitor/**").permitAll()
                         .requestMatchers("/images/**").permitAll()
-                        .anyRequest().hasAnyRole(Const.ROLE_DEFAULT)
+                        .requestMatchers("/api/user/sub/**").hasAnyRole(Const.ROLE_ADMIN)
+                        .anyRequest().hasAnyRole(Const.ROLE_ADMIN,Const.ROLE_NORMAL)
                 )
                 .formLogin(conf ->conf
                         .loginProcessingUrl("/api/auth/login")
@@ -84,6 +85,7 @@ public class SecurityConfiguration {
         vo.setRole(user.getRole());
         vo.setToken(token);
         vo.setUsername(user.getUsername());
+        vo.setEmail(user.getEmail());
         response.getWriter().write(RestBean.success(vo).asJsonString());
     }
     public void onAuthenticationFailure(HttpServletRequest request,

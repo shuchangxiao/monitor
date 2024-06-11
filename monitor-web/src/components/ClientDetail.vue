@@ -2,10 +2,12 @@
 import {watch,reactive,computed} from "vue";
 import {get, post} from "@/net/index.js";
 import {fitByUnit, cpuNameToImage, osNameToIcon, rename, copyIp, percentageToStatus} from "@/tools/index.js";
-
+import {userStore} from "@/store/index.js";
 import {ElMessage, ElMessageBox} from "element-plus";
 import RuntimeHistory from "@/components/RuntimeHistory.vue";
 import {Delete} from "@element-plus/icons-vue";
+
+const user = userStore()
 const location = [
   {name:'cn',desc:'中国大陆'},
   {name:'hk',desc:'香港'},
@@ -40,7 +42,7 @@ function updateDetails(){
 }
 setInterval(()=>{
   if(props.id !==-1){
-    get(`/api/monitor/runtime-now?id=${props.id}`,data=>{
+    get(`/api/monitor/runtime-now?clientId=${props.id}`,data=>{
       if(details.runtime.list.length>=360){
         details.runtime.list.splice(0,1)
       }
@@ -52,11 +54,11 @@ const init = id=>{
   if(id !== -1){
     details.base={}
     details.runtime={list:[]}
-    get(`/api/monitor/details?id=${id}`,data=>{
+    get(`/api/monitor/details?clientId=${id}`,data=>{
       console.log(data)
       Object.assign(details.base,data)
     })
-    get(`/api/monitor/runtime-history?id=${id}`,data=>{
+    get(`/api/monitor/runtime-history?clientId=${id}`,data=>{
       Object.assign(details.runtime,data)
     })
   }
@@ -84,7 +86,14 @@ function deleteClient() {
       props.update()
       ElMessage.success('主机移出成功')
     })
-  }).catch(()=>ElMessage.error("主机移出失败，请连续管理员"))
+  }).catch((error) => {
+    // 判断是否是用户取消的操作
+    if (error === 'cancel') {
+    } else {
+      // 其他错误情况
+      ElMessage.error("主机移出失败，请联系管理员");
+    }
+  })
 }
 const now = computed(()=>details.runtime.list[details.runtime.list.length-1])
 </script>
@@ -98,7 +107,7 @@ const now = computed(()=>details.runtime.list[details.runtime.list.length-1])
             <i style="color: #1818" class="fa-solid fa-circle-play"></i>
             <span>服务器信息</span>
           </div>
-          <el-button @click="deleteClient" :icon="Delete" type="danger" size="large" plain text>删除此主机</el-button>
+          <el-button :disabled="!user.isAdmin" @click="deleteClient" :icon="Delete" type="danger" size="large" plain text>删除此主机</el-button>
         </div>
         <el-divider style="margin: 10px 0"/>
         <div class="details-list">
