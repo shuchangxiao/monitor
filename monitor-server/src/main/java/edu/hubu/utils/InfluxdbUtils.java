@@ -43,7 +43,6 @@ public class InfluxdbUtils {
         data.setClientId(clientId);
         data.setTimestamp(new Date(vo.getTimestamp()).toInstant());
         WriteApiBlocking writeApi = client.getWriteApiBlocking();
-        System.out.println(data);
         writeApi.writeMeasurement(BUCKET, ORG, WritePrecision.NS, data);
     }
     public RuntimeHistoryVO readRuntimeData(int id){

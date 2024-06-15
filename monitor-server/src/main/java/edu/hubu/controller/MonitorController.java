@@ -6,10 +6,8 @@ import edu.hubu.entity.dto.AccountDto;
 import edu.hubu.entity.vo.request.RenameClientVO;
 import edu.hubu.entity.vo.request.RenameNodeVO;
 import edu.hubu.entity.vo.request.RuntimeDetailVO;
-import edu.hubu.entity.vo.response.ClientDetailsVO;
-import edu.hubu.entity.vo.response.ClientPreviewVO;
-import edu.hubu.entity.vo.response.ClientSimpleVO;
-import edu.hubu.entity.vo.response.RuntimeHistoryVO;
+import edu.hubu.entity.vo.request.SshConnectionVO;
+import edu.hubu.entity.vo.response.*;
 import edu.hubu.service.AccountService;
 import edu.hubu.service.ClientService;
 import edu.hubu.utils.Const;
@@ -112,6 +110,25 @@ public class MonitorController {
         if (this.isAdminAccount(role)){
             clientService.deleteClient(clientId);
             return RestBean.success();
+        }
+        return RestBean.noPermission();
+    }
+    @PostMapping("/ssh-save")
+    public RestBean<Void> saveSshConnect(@RequestBody @Valid SshConnectionVO vo,
+                                         @RequestAttribute(Const.ATTR_USER_ID) int id,
+                                         @RequestAttribute(Const.Attr_USER_ROLE) String role){
+        if(permissionCheck(id,role,vo.getId())){
+            clientService.saveClientSshConnection(vo);
+            return RestBean.success();
+        }
+        return RestBean.noPermission();
+    }
+    @GetMapping("/ssh")
+    public RestBean<SshSettingVO> saveSshConnect(int clientId,
+                                                 @RequestAttribute(Const.ATTR_USER_ID) int id,
+                                                 @RequestAttribute(Const.Attr_USER_ROLE) String role){
+        if(permissionCheck(id,role,clientId)){
+            return RestBean.success(clientService.sshSetting(clientId));
         }
         return RestBean.noPermission();
     }

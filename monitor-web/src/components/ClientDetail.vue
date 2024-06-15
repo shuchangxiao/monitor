@@ -5,7 +5,7 @@ import {fitByUnit, cpuNameToImage, osNameToIcon, rename, copyIp, percentageToSta
 import {userStore} from "@/store/index.js";
 import {ElMessage, ElMessageBox} from "element-plus";
 import RuntimeHistory from "@/components/RuntimeHistory.vue";
-import {Delete} from "@element-plus/icons-vue";
+import {Connection, Delete} from "@element-plus/icons-vue";
 
 const user = userStore()
 const location = [
@@ -35,7 +35,7 @@ const enableNodeEdit = ()=>{
   nodeEdit.name = details.base.node
   nodeEdit.location = details.base.location
 }
-// const emit = defineEmits(['delete'])
+const emit = defineEmits(['terminal'])
 function updateDetails(){
   props.update()
   init(props.id)
@@ -107,8 +107,11 @@ const now = computed(()=>details.runtime.list[details.runtime.list.length-1])
             <i style="color: #1818" class="fa-solid fa-circle-play"></i>
             <span>服务器信息</span>
           </div>
-          <el-button :disabled="!user.isAdmin" @click="deleteClient" :icon="Delete" type="danger" size="large" plain text>删除此主机</el-button>
-        </div>
+          <div>
+            <el-button :disabled="!user.isAdmin" @click="emit('terminal',id)" :icon="Connection" type="primary" size="large" text>SSH远程连接</el-button>
+            <el-button :disabled="!user.isAdmin" @click="deleteClient" :icon="Delete" type="danger" size="large" plain text style="margin-left: 0">删除此主机</el-button>
+          </div>
+            </div>
         <el-divider style="margin: 10px 0"/>
         <div class="details-list">
           <div>

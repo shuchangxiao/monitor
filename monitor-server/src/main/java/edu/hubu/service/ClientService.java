@@ -2,14 +2,8 @@ package edu.hubu.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import edu.hubu.entity.dto.Client;
-import edu.hubu.entity.vo.request.ClientDetailVO;
-import edu.hubu.entity.vo.request.RenameClientVO;
-import edu.hubu.entity.vo.request.RenameNodeVO;
-import edu.hubu.entity.vo.request.RuntimeDetailVO;
-import edu.hubu.entity.vo.response.ClientDetailsVO;
-import edu.hubu.entity.vo.response.ClientPreviewVO;
-import edu.hubu.entity.vo.response.ClientSimpleVO;
-import edu.hubu.entity.vo.response.RuntimeHistoryVO;
+import edu.hubu.entity.vo.request.*;
+import edu.hubu.entity.vo.response.*;
 
 import java.util.List;
 
@@ -28,4 +22,6 @@ public interface ClientService extends IService<Client> {
     RuntimeDetailVO clientRuntimeDetailsNow(int clientId);
     void deleteClient(int clientId);
     List<ClientSimpleVO> getListSimpleClientPreview();
+    void saveClientSshConnection(SshConnectionVO vo);
+    SshSettingVO sshSetting(int id);
 }

@@ -7,6 +7,7 @@ import CreateSubAccount from "@/components/CreateSubAccount.vue";
 import {get, post} from "@/net/index.js";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {userStore} from "@/store/index.js";
+import ChangeEmail from "@/components/ChangeEmail.vue";
 
 const user = userStore()
 const createAccount = ref(false)
@@ -50,7 +51,10 @@ const createSuccess = ()=>{
 
 <template>
   <div style="display: flex;flex-direction: row;gap: 10px">
-    <ChangePassword/>
+    <div>
+      <ChangePassword/>
+      <ChangeEmail/>
+    </div>
     <div class="info-card" style="flex: 1">
       <div class="title"><i class="fa-solid fa-users"></i>子用户管理</div>
       <el-divider style="margin: 10px 0"></el-divider>

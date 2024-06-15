@@ -35,6 +35,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilter(HttpSecurity http) throws Exception {
         return http
                 .authorizeHttpRequests(auth ->auth
+                        .requestMatchers("/terminal/**").permitAll()
                         .requestMatchers("/api/auth/**","/error").permitAll()
                         .requestMatchers("/monitor/**").permitAll()
                         .requestMatchers("/images/**").permitAll()

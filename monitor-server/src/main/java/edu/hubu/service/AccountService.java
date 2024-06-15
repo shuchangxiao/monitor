@@ -14,6 +14,7 @@ public interface AccountService extends IService<AccountDto>, UserDetailsService
     String resetConfirm(ConfirmResetVO vo);
     String resetPassword(EmailResetVO vo);
     String changePassword(int id,ChangePasswordVO vo);
+    String changeEmail(int id,ChangeEmailVO vo);
     void createSubAccount(CreateSubAccountVO vo);
     void deleteSubAccount(int id);
     List<SubAccountVO> listSubAccount();

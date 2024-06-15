@@ -51,6 +51,26 @@ public class AccountServiceImp extends ServiceImpl<AccountMapper, AccountDto> im
     }
 
     @Override
+    public String changeEmail(int id, ChangeEmailVO vo) {
+        AccountDto accountByNameOrEmail = this.findAccountByNameOrEmail(vo.getEmail());
+        if( accountByNameOrEmail != null){
+            if( accountByNameOrEmail.getId() == id)
+                return "无法与原邮箱相同";
+            return "该电子邮件已被注册";
+        }
+        String string = stringRedisTemplate.opsForValue().get(Const.VERIFY_EMAIL_DATA + vo.getNow_email());
+        if (string != null) {
+            if(string.equals(vo.getCode())){
+                stringRedisTemplate.delete(Const.VERIFY_EMAIL_DATA + vo.getNow_email());
+                this.update().eq("id",id).set("email",vo.getEmail()).update();
+                return null;
+            }
+        }
+        return "验证码已失效或无用";
+
+    }
+
+    @Override
     public String changePassword(int id,ChangePasswordVO vo) {
         AccountDto byId = this.getById(id);
         if (!encoder.matches(vo.getPassword(),byId.getPassword())) {

@@ -1,5 +1,8 @@
 package edu.hubu.utils;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Const {
     // JWT令牌
     public static final String JWT_BLACK_LIST = "jwt:blacklist:";
@@ -26,5 +29,17 @@ public class Const {
     // 用户黑名单
     public static final String USER_BLACK_LIST = "user:blacklist:";
     public static final String Attr_USER_ROLE = "userRole:";
+    private static final String EMAIL_PATTERN =
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@" +
+                    "(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+
+    private static final Pattern pattern = Pattern.compile(EMAIL_PATTERN);
+    public static boolean isValidEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+        Matcher matcher = pattern.matcher(email);
+        return matcher.matches();
+    }
 
 }
