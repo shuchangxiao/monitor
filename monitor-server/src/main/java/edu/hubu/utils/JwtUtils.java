@@ -52,6 +52,9 @@ public class JwtUtils {
     }
     public DecodedJWT resolveJwt(String headerToken){
         String token = this.convertToken(headerToken);
+        return resolveJwtNoBear(token);
+    }
+    public DecodedJWT resolveJwtNoBear(String token){
         if(token == null) return null;
         Algorithm algorithm = Algorithm.HMAC256(KEY);
         JWTVerifier jwtVerify = JWT.require(algorithm).build();

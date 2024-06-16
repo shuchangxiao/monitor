@@ -5,13 +5,14 @@ import {ElMessage} from "element-plus";
 import {AttachAddon} from "xterm-addon-attach/src/AttachAddon.ts";
 import {Terminal} from "xterm";
 import "xterm/css/xterm.css"
+import {takeAccessToken} from "@/net/index.js";
 
 const props = defineProps({
   id:Number
 })
 const emit = defineEmits(['dispose'])
 const terminalRef = ref()
-const socket = new WebSocket(`ws:${axios.defaults.baseURL.slice(5)}/terminal/${props.id}`)
+const socket = new WebSocket(`ws:${axios.defaults.baseURL.slice(5)}/terminal/${props.id}${takeAccessToken()}`)
 socket.onclose = evt => {
   if(evt.code !== 1000){
     ElMessage.warning(`连接失败：${evt.reason}`)
