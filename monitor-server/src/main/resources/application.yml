@@ -23,12 +23,12 @@ spring:
     username: scc_20220@163.com
     password: HQJTQUTRJRTKHIAA
   rabbitmq:
-    addresses: 192.168.171.131
+    addresses: 192.168.171.132
     username: admin
     password: 123scc
     virtual-host: /
   minio:
-    endpoint: "http:/192.168.171.131:9000"
+    endpoint: "http:/192.168.171.132:9000"
     username: "minio"
     password: "password"
   weather:

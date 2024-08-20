@@ -12,7 +12,8 @@ const props = defineProps({
 })
 const emit = defineEmits(['dispose'])
 const terminalRef = ref()
-const socket = new WebSocket(`ws:${axios.defaults.baseURL.slice(5)}/terminal/${props.id}${takeAccessToken()}`)
+// const socket = new WebSocket(`ws:${axios.defaults.baseURL.slice(5,17)}8090/terminal?clientId=${props.id}&token=Bearer ${takeAccessToken()}`)
+const socket = new WebSocket(`ws:${axios.defaults.baseURL.slice(5)}/terminal/${props.id}`)
 socket.onclose = evt => {
   if(evt.code !== 1000){
     ElMessage.warning(`连接失败：${evt.reason}`)

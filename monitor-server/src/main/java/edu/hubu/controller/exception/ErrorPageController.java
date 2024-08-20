@@ -2,16 +2,12 @@ package edu.hubu.controller.exception;
 
 import edu.hubu.entity.RestBean;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ValidationException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.web.servlet.error.AbstractErrorController;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Map;
 import java.util.Optional;

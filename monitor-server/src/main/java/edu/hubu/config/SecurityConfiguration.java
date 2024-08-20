@@ -77,7 +77,6 @@ public class SecurityConfiguration {
         * User = (User) authentication.getPrincipal();
         * String token = jwtUtils.creatJwt(user,1,"小明");
         * */
-
         // 修改后写法
         MyUserDetail user = (MyUserDetail) authentication.getPrincipal();
         String token = jwtUtils.creatJwt(user);
