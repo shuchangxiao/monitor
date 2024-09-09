@@ -14,4 +14,5 @@ public interface WebSocketService {
     void addChannel(Channel channel, String clientId) throws IOException;
     void onMessage(Channel channel, String message) throws IOException;
     void onClose(Channel channel) throws IOException;
+    void executeReadAsync(Channel channel);
 }

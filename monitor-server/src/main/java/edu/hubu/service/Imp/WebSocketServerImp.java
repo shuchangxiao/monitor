@@ -1,5 +1,6 @@
 package edu.hubu.service.Imp;
 
+import com.alibaba.fastjson2.JSON;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
@@ -40,6 +41,7 @@ public class WebSocketServerImp implements WebSocketService {
 
     private final ExecutorService service = Executors.newCachedThreadPool();
     private final ConcurrentHashMap<Channel,WebSocketServerImp.Shell> chanelMap = new ConcurrentHashMap<>();
+    private final JSch jSch = new JSch();
     @Override
     public void onClose(Channel channel) throws IOException {
         Shell shell = chanelMap.get(channel);
@@ -69,7 +71,6 @@ public class WebSocketServerImp implements WebSocketService {
         }
     }
     private boolean createSshConnection(Channel channel, ClientSsh ssh, String ip) throws IOException {
-        JSch jSch = new JSch();
         try {
             com.jcraft.jsch.Session js = jSch.getSession(ssh.getUsername(), ip, ssh.getPort());
             js.setPassword(ssh.getPassword());
@@ -84,19 +85,26 @@ public class WebSocketServerImp implements WebSocketService {
         } catch (JSchException e) {
             String message = e.getMessage();
             if(message.equals("Auth fail")){
-                channel.write(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,"登录SSH失败，用户民或密码错误"));
+                channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,"登录SSH失败，用户民或密码错误"))));
+
                 log.error("登录SSH失败，用户民或密码错误");
             }else if (message.contains("Connection refused")){
-                channel.write(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,"连接被拒绝，可能未启动SSH服务或未开发端口"));
+                channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,"连接被拒绝，可能未启动SSH服务或未开发端口"))));
                 log.error("登录SSH失败，连接被拒绝，可能未启动SSH服务或未开发端口");
             }else {
-                channel.write(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,message));
+                channel.writeAndFlush(new TextWebSocketFrame(JSON.toJSONString(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT,message))));
                 log.error("登录SSH时错误"+message);
             }
             return false;
         }
     }
-
+    @Override
+    public void executeReadAsync(Channel channel){
+        Shell shell = chanelMap.get(channel);
+        if(shell!=null){
+            shell.executeReadAsync();
+        }
+    }
     private class Shell{
         private final Channel channel;
         private final com.jcraft.jsch.Session js;
@@ -109,11 +117,13 @@ public class WebSocketServerImp implements WebSocketService {
             this.channelShell = channelShell;
             this.input = channelShell.getInputStream();
             this.output = channelShell.getOutputStream();
+        }
+        public void executeReadAsync() {
             service.submit(this::read);
         }
         private void read(){
             try {
-                byte[] buffer = new byte[1024*1024];
+                byte[] buffer = new byte[2024];
                 int i;
                 while ((i = input.read(buffer)) != -1){
                     String text = new String(Arrays.copyOfRange(buffer,0,i), StandardCharsets.UTF_8);

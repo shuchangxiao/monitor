@@ -12,6 +12,7 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.util.NettyRuntime;
 import io.netty.util.concurrent.Future;
 import jakarta.annotation.PostConstruct;
@@ -46,6 +47,7 @@ public class NettyWebSocketServer {
                   @Override
                   protected void initChannel(SocketChannel ch) throws Exception {
                       ChannelPipeline pipeline = ch.pipeline();
+                      pipeline.addLast(new IdleStateHandler(30, 30, 0));
                       // 因为使用http协议，所以需要使用http的编码器，解码器
                       pipeline.addLast(new HttpServerCodec());
                       // 以块方式写，添加 chunkedWriter 处理器
